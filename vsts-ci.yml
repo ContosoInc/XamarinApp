@@ -1,0 +1,39 @@
+# Build Xamarin.Android and Xamarin.iOS
+
+phases:
+
+- phase: Xamarin_iOS_on_macOS
+  queue:
+    name: 'Hosted Mac Internal'
+  variables:
+    buildConfiguration: 'Release'
+    solution: '**/*.sln'
+  steps:
+  - task: XamariniOS@1
+    displayName: 'Build Xamarin.iOS solution'
+    inputs:
+      solutionFile: $(solution)
+      configuration: $(buildConfiguration)
+      buildForSimulator: true
+
+
+- phase: Xamarin_Android_on_Windows
+  queue:
+    name: 'Hosted VS2017'
+  variables:
+    buildConfiguration: 'Release'
+    outputDirectory: '$(build.binariesDirectory)/$(buildConfiguration)'
+    solution: '**/*.sln'
+  steps:
+  - task: NuGetCommand@2
+    displayName: 'NuGet restore packages'
+    inputs:
+      restoreSolution: '$(solution)'
+  - task: XamarinAndroid@1
+    displayName: 'Build Xamarin.Android projects'
+    inputs:
+      projectFile: '**/*Droid*.csproj'
+      outputDirectory: '$(outputDirectory)'
+      configuration: '$(buildConfiguration)'
+      createAppPackage: 'false'
+      jdkVersionOption: '1.8'
